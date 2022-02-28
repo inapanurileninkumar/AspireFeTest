@@ -38,7 +38,7 @@
             <div class="flex-row justify-end">
               <span
                 class="new-card-btn bg-primary ph-10 pv-7 radius-3 text-white pointer-cursor"
-                @click="addNewCard"
+                @click="handleAddNewCard"
               >
                 <i class="fas fa-plus-circle" />
                 New Card
@@ -121,6 +121,7 @@
                 class="mt-15 card-actions-container"
               >
                 <card-actions
+                  :card="activeCard"
                   @event-emitted="handleChildEvent"
                 />
               </div>
@@ -222,7 +223,7 @@
                 <span>
                   <span
                     class="text-underline text-info text-bold pointer-cursor"
-                    @click="addNewCard"
+                    @click="handleAddNewCard"
                   >
                     Add a new card
                   </span>
@@ -234,6 +235,21 @@
         </template>
       </div>
     </div>
+    <modal
+      v-if="isModalActive"
+      :show-close-icon="false"
+    >
+      <template #default>
+
+        <template
+          v-if="modalComponent==='new-card'"
+        >
+          <new-card
+            @event-emitted="handleChildEvent"
+          />
+        </template>
+      </template>
+    </modal>
   </div>
 </template>
 
@@ -247,14 +263,28 @@ import DashboardTransaction from '@components/transaction/DashboardTransaction';
 import { useStore } from 'vuex';
 import CardActions from '@components/dashboard/CardActions';
 import FlexCol from '@components/utils/FlexCol';
+import Modal from '@components/utils/Modal';
+import NewCard from '@components/card/NewCard';
 
 export default {
   name: 'Cards',
-  components: { FlexCol, Card, Collapse, CollapseItem, DashboardTransaction, CardActions },
+  components: {
+    Card,
+    Modal,
+    FlexCol,
+    NewCard,
+    Collapse,
+    CardActions,
+    CollapseItem,
+    DashboardTransaction
+  },
   emits: ['event-emitted'],
   setup (_, { emit }) {
     const bal = ref(3000);
-    let store = useStore();
+    const isModalActive = ref(false);
+    const modalComponent = ref(null);
+    const modalData = ref({});
+    const store = useStore();
     const transactions = computed(() => store.getters['transactions/getTransactions'].slice(0, 5));
     const activeCard = computed(() => store.getters['cards/getActiveCard']);
     const cards = computed(() => store.getters['cards/getCards']);
@@ -278,10 +308,31 @@ export default {
     function handleCardCancel () {
       emitEvent('cancel-card', activeCard.value);
     }
+    function handleAddNewCard () {
+      openModal('new-card');
+    }
+
+    function openModal (component, data) {
+      modalData.value = data;
+      modalComponent.value = component;
+      isModalActive.value = true;
+    }
+
+    function closeModal (component, data) {
+      isModalActive.value = false;
+    }
+
+    function handleNewCardData (newCardData) {
+      emitEvent('add-new-card', newCardData);
+      closeModal();
+    }
+
     function handleChildEvent (action, payload) {
       let actionHandlers = {
         'toggle-card-active': handleCardActiveChange,
-        'cancel-card': handleCardCancel
+        'cancel-card': handleCardCancel,
+        'cancel-new-card': closeModal,
+        'add-new-card': handleNewCardData
       };
       if (actionHandlers) {
         actionHandlers[action](payload);
@@ -293,6 +344,11 @@ export default {
       bal,
       cards,
       activeCard,
+      isModalActive,
+      modalComponent,
+      openModal,
+      closeModal,
+      modalData,
       addNewCard,
       isLastCard,
       humanNumber,
@@ -300,7 +356,8 @@ export default {
       handleChildEvent,
       transactions,
       activateNextCard,
-      activatePreviousCard
+      activatePreviousCard,
+      handleAddNewCard
     };
   }
 };

@@ -1,3 +1,5 @@
+import { useRouter } from 'vue-router';
+
 export function humanNumber (number) {
   // returning the number as it is if it's not a number
   let a = Number.parseFloat(number);
@@ -39,7 +41,8 @@ export function deepCopy (data) {
   return JSON.parse(JSON.stringify(data));
 }
 export function routeTo (path, payload, query = null) {
-  this.$router
+  const router = useRouter();
+  router
     .replace({
       name: path,
       params: payload,

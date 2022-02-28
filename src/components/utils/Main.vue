@@ -130,9 +130,10 @@ export default {
       };
     }
 
-    function addNewCard () {
+    function addNewCard (newCardData) {
       let sampleCard = buildSampleCard();
       addCard(sampleCard['card']);
+      sampleCard['card']['name'] = newCardData['name'];
       sampleCard['transactions'].forEach(transaction => addTransaction(transaction));
       setActiveCard(sampleCard['card']);
     }

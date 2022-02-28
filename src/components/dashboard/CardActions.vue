@@ -22,7 +22,7 @@
           class="action-container"
         >
           <span>
-            Freeze Card
+            {{ card['active']?'Freeze':'Unfreeze' }} Card
           </span>
         </div>
       </flex-col>
@@ -85,7 +85,7 @@
       <flex-col
         col="2"
         class="pointer-cursor"
-        @click="cardAction('cancel-card')"
+        @click="handleCancelCard"
       >
         <div
           class="pb-10 mt-6 action-container"
@@ -103,21 +103,115 @@
         </div>
       </flex-col>
     </div>
+    <modal
+      v-if="isModalActive"
+      :show-close-icon="false"
+    >
+      <template #default>
+
+        <template
+          v-if="modalComponent==='cancel-card'"
+        >
+          <div
+            class="cancel-card-confirmation bg-white radius-10"
+          >
+            <div
+              class="bg-danger-lite p-15"
+            >
+              <span
+                class="font-regular text-dark text-bold"
+              >
+                Cancel Card
+              </span>
+            </div>
+            <div
+              class="p-20 font-regular text-secondary-dark"
+            >
+              <div>
+                <span>
+                  Are you sure want to remove this card ?
+                  <br>this action cannot be undone.
+                </span>
+              </div>
+              <div
+                class="flex-row align-center justify-between pt-30"
+              >
+                <div>
+                  <span
+                    class="text-secondary-dark ph-10 pv-5 font-medium-reg radius-5 pointer-cursor"
+                    @click="closeModal"
+                  >
+                    Close
+                  </span>
+                </div>
+                <div>
+                  <span
+                    class="bg-danger text-white ph-10 pv-5 font-medium-reg radius-5 pointer-cursor"
+                    @click="cancelCard"
+                  >
+                    <i class="far fa-trash-alt font-medium" />
+                    Proceed
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </template>
+    </modal>
   </div>
 </template>
 
 <script>
+import { ref } from 'vue';
 import FlexCol from '@components/utils/FlexCol';
+import Modal from '@components/utils/Modal';
 
 export default {
-  components: { FlexCol },
+  components: { FlexCol, Modal },
+  props: {
+    card: {
+      type: Object,
+      default: null
+    }
+  },
   emits: ['event-emitted'],
   setup (_, { emit }) {
+    const isModalActive = ref(false);
+    const modalComponent = ref(null);
+    const modalData = ref({});
+
     function cardAction (action, payload) {
       emit('event-emitted', action, payload);
     }
+
+    function openModal (component, data) {
+      modalData.value = data;
+      modalComponent.value = component;
+      isModalActive.value = true;
+    }
+
+    function closeModal (component, data) {
+      isModalActive.value = false;
+    }
+
+    function handleCancelCard () {
+      openModal('cancel-card');
+    }
+
+    function cancelCard () {
+      closeModal();
+      cardAction('cancel-card');
+    }
+
     return {
-      cardAction
+      cardAction,
+      handleCancelCard,
+      isModalActive,
+      modalComponent,
+      openModal,
+      closeModal,
+      cancelCard
     };
   }
 };
@@ -142,6 +236,11 @@ export default {
       height:25px;
       width:25px
     }
+}
+
+.cancel-card-confirmation{
+  min-height:25vh;
+  min-width:30vw;
 }
 
 @media screen and (max-width:720px){
