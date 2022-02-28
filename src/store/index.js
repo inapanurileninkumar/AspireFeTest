@@ -1,12 +1,10 @@
-import { createStore } from 'vuex'
+import { createStore } from 'vuex';
+import cards from './modules/cards';
+import transactions from './modules/transactions';
 
 export default createStore({
-  state: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
   modules: {
+    cards,
+    transactions
   }
-})
+});
